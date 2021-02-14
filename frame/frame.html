@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .img-container {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            width: 100vw;
+        }
+
+        .img-container img {
+            height: 100%;
+            left: 0;
+            object-fit: cover;
+            object-position: center;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: -1;
+        }
+
+        .img-container img.next {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .img-container img.prev {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .img-container img.fade-out {
+            opacity: 0;
+            transition: visibility 0s 0.5s, opacity 0.5s linear;
+            visibility: hidden;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+
+        class Slideshow {
+
+            constructor() {
+                this.initSlides();
+                this.initSlideshow();
+            }
+
+            // Set a `data-slide` index on each slide for easier slide control.
+            initSlides() {
+                this.container = $('[data-slideshow]');
+                this.slides = this.container.find('img');
+                this.slides.each((idx, slide) => $(slide).attr('data-slide', idx));
+            }
+
+            // Pseudo-preload images so the slideshow doesn't start before all the images
+            // are available.
+            initSlideshow() {
+                this.imagesLoaded = 0;
+                this.currentIndex = 0;
+                this.setNextSlide();
+                this.slides.each((idx, slide) => {
+                    $('<img>').on('load', $.proxy(this.loadImage, this)).attr('src', $(slide).attr('src'));
+                });
+            }
+
+            // When one image has loaded, check to see if all images have loaded, and if
+            // so, start the slideshow.
+            loadImage() {
+                this.imagesLoaded++;
+                if (this.imagesLoaded >= this.slides.length) { this.playSlideshow() }
+            }
+
+            // Start the slideshow.
+            playSlideshow() {
+                this.slideshow = window.setInterval(() => { this.performSlide() }, 4000);
+            }
+
+            // 1. Previous slide is unset.
+            // 2. What was the next slide becomes the previous slide.
+            // 3. New index and appropriate next slide are set.
+            // 4. Fade out action.
+            performSlide() {
+                if (this.prevSlide) { this.prevSlide.removeClass('prev fade-out') }
+
+                this.nextSlide.removeClass('next');
+                this.prevSlide = this.nextSlide;
+                this.prevSlide.addClass('prev');
+
+                this.currentIndex++;
+                if (this.currentIndex >= this.slides.length) { this.currentIndex = 0 }
+
+                this.setNextSlide();
+
+                this.prevSlide.addClass('fade-out');
+            }
+
+            setNextSlide() {
+                this.nextSlide = this.container.find(`[data-slide="${this.currentIndex}"]`).first();
+                this.nextSlide.addClass('next');
+            }
+
+        }
+
+        function createImage(photo) {
+            let img = $("<img></img>")
+            img.attr('src', "./photos/" + photo);
+            return img
+        }
+
+
+        photos = [];
+
+        $.ajax({
+            url: "https://192.168.1.13:3000/photos",
+            type: "GET",
+            contentType: "application/json",
+            success: function (result) {
+                console.log(result)
+                for (var i = 0; i < result.photos.length; i++) {
+                    photos.push(result.photos[i])
+                    $("div.img-container").append(createImage(result.photos[i]))
+                }
+                console.log(photos);
+                new Slideshow;
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        })
+    </script>
+
+    <title>DPF</title>
+</head>
+
+<body style="background-color:black;">
+    <div class="img-container" data-slideshow>
+    </div>
+</body>
+
+</html>

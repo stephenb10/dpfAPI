@@ -2,12 +2,12 @@ var express = require('express'),
   https = require('https'),
   app = express(),
   port = process.env.PORT || 3000,
-  fs = require('fs')
+  fs = require('fs'),
+  expressWs = require('express-ws'),
   bodyParser = require('body-parser'),
   privateKey  = fs.readFileSync('./keys/server.key', 'utf8'),
   certificate = fs.readFileSync('./keys/server.cert', 'utf8'),
   credentials = {key: privateKey, cert: certificate};
-
 
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb'}));
 app.use(bodyParser.json({ limit: '50mb'}));
@@ -17,8 +17,25 @@ app.use(bodyParser.raw({
 }))
 
 
+
+var httpsServer = https.createServer(credentials, app);
+
+wss = expressWs(app, httpsServer)
 var routes = require('./api/routes/dpfRoutes');
 routes(app);
+
+app.ws('/update', (ws, req) => {
+  ws.on('message', msg => {
+    console.log(msg)
+      ws.send(JSON.stringify({0: msg}))
+  })
+
+  ws.on('close', () => {
+      console.log('WebSocket was closed')
+  })
+})
+
+exports.wss = wss.getWss('/update');
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -27,8 +44,6 @@ app.get('/', (req, res) => {
 app.use(function(req, res) {
   res.status(404).send({url: req.originalUrl.substring(1) + ' not found'})
 });
-
-var httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(3000);
 

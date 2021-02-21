@@ -1,6 +1,8 @@
 'use strict';
+const expressWs = require('express-ws');
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid');
+var server = require('../../server.js');
 
 exports.get_all_photoIDs = function(req, res) {
     // Loop through all photos saved to device and append the resource name to the response
@@ -10,9 +12,12 @@ exports.get_all_photoIDs = function(req, res) {
     {
         var fileNames = [];
         files.forEach((file) => {
-            fileNames.push(file);
+            if ( file.includes(".jpg") ) {
+                fileNames.push(file);
+            }
         });
-        res.status(200).json({photos: fileNames});
+        res.status(200);
+        res.json({photos: fileNames});
     }
     else {
         res.status(204).send();
@@ -64,7 +69,19 @@ exports.new_photo = function(req, res )
             return;
         });
 
+        // update websocket listeners
+        // send new photo through json
+        console.log("new photo added")
+        server.wss.clients.forEach(function (client) {
+            console.log("for each client", client.readyState)
+            if (client.readyState === 1){
+                console.log("told client");
+                client.send(JSON.stringify({added : fileName}))
+            }
+        });
+
         res.status(201).json({photoID : fileName});
+
     }
 };
 
@@ -82,10 +99,18 @@ exports.delete_photo = function(req, res )
         if (err)  {
             console.log(err);
             res.status(404).send();
-
         }
         else { 
           console.log("\nDeleted: " + path); 
+          server.wss.clients.forEach(function (client) {
+            console.log("for each client", client.readyState)
+            if (client.readyState === 1){
+                console.log("told client");
+                client.send(JSON.stringify({deleted : id}))
+            }
+        });
+
+
           res.status(204).send();
         } 
       })); 

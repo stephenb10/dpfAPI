@@ -48,11 +48,12 @@ app.use(function(req, res) {
 
 const udpServer = dgram.createSocket('udp4');
 const networkInterfaces = os.networkInterfaces()
-const ip = networkInterfaces['en0'][1]['address']
+console.log(networkInterfaces)
+const ip = networkInterfaces['wlan0'][0]['address']
 
 udpServer.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
-  server.close();
+  udpServer.close();
 });
 
 udpServer.on('message', (msg, rinfo) => {
@@ -63,14 +64,14 @@ udpServer.on('message', (msg, rinfo) => {
       udpServer.close();
     }
 
-    console.log("sent message")
+    console.log(`Replied with IP: ${ip}`)
 
   });
 });
 
 udpServer.on('listening', () => {
   const address = udpServer.address();
-  console.log(`server listening ${address.address}:${address.port}`);
+  console.log(`UDP disocvery listening ${address.address}:${address.port}`);
 });
 
 udpServer.bind(37020);

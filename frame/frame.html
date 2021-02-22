@@ -144,7 +144,7 @@
         var slideshow = null;
 
         $.ajax({
-            url: "https://192.168.1.13:3000/photos",
+            url: "https://localhost:3000/photos",
             type: "GET",
             contentType: "application/json",
             success: function (result) {
@@ -161,7 +161,7 @@
             }
         })
 
-        var updateSocket = new WebSocket("wss://192.168.1.13:3000/update")
+        var updateSocket = new WebSocket("wss://localhost:3000/update")
         updateSocket.onopen = function (event) {
             updateSocket.send("Photo Frame Client");
             console.log("Connected to update websocket");

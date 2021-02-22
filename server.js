@@ -3,6 +3,8 @@ var express = require('express'),
   app = express(),
   port = process.env.PORT || 3000,
   fs = require('fs'),
+  os = require('os'),
+  dgram = require('dgram'),
   expressWs = require('express-ws'),
   bodyParser = require('body-parser'),
   privateKey  = fs.readFileSync('./keys/server.key', 'utf8'),
@@ -15,8 +17,6 @@ app.use(bodyParser.raw({
   type: 'image/jpeg',
   limit: '50mb'
 }))
-
-
 
 var httpsServer = https.createServer(credentials, app);
 
@@ -44,6 +44,36 @@ app.get('/', (req, res) => {
 app.use(function(req, res) {
   res.status(404).send({url: req.originalUrl.substring(1) + ' not found'})
 });
+
+
+const udpServer = dgram.createSocket('udp4');
+const networkInterfaces = os.networkInterfaces()
+const ip = networkInterfaces['en0'][1]['address']
+
+udpServer.on('error', (err) => {
+  console.log(`server error:\n${err.stack}`);
+  server.close();
+});
+
+udpServer.on('message', (msg, rinfo) => {
+  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+  udpServer.send(Buffer.from(ip), rinfo.port, rinfo.address, (err) => {
+    if(err != null) {
+      console.log("Error sending msg", err)
+      udpServer.close();
+    }
+
+    console.log("sent message")
+
+  });
+});
+
+udpServer.on('listening', () => {
+  const address = udpServer.address();
+  console.log(`server listening ${address.address}:${address.port}`);
+});
+
+udpServer.bind(37020);
 
 httpsServer.listen(3000);
 

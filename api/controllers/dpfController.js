@@ -1,5 +1,4 @@
 'use strict';
-const expressWs = require('express-ws');
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid');
 var server = require('../../server.js');
@@ -42,18 +41,14 @@ exports.get_photo = function(req, res )
             return
         }
     } catch(err) {
-        console.error(err);
+        console.error("Error checking if file exists:", err);
     }
 
 };
 
 exports.new_photo = function(req, res )
 {
-    if(req.body.constructor === Object && Object.keys(req.body).length === 0) {
-        res.status(400).send();
-    } 
-    else 
-    {
+    
         var imageData = req.body.imageData
 
         if (!imageData) {
@@ -81,8 +76,7 @@ exports.new_photo = function(req, res )
         });
 
         res.status(201).json({photoID : fileName});
-
-    }
+    
 };
 
 exports.update_photo = function(req, res )
@@ -101,7 +95,7 @@ exports.delete_photo = function(req, res )
             res.status(404).send();
         }
         else { 
-          console.log("\nDeleted: " + path); 
+          console.log("Deleted: " + path); 
           server.wss.clients.forEach(function (client) {
             console.log("for each client", client.readyState)
             if (client.readyState === 1){
@@ -120,4 +114,8 @@ exports.delete_photo = function(req, res )
 
 exports.get_photo_frame = function(req, res ) {
     res.sendFile("frame.html", {root: './frame'});
+}
+
+exports.get_photo_frame_script = function(req, res) {
+    res.sendFile("frame.js", {root: './frame'});
 }

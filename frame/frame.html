@@ -6,28 +6,21 @@
         body {
             overflow: hidden;
             background-color: white;
-            /* Hide scrollbars */
+            margin: 0;
         }
 
         .img-container {
-            top: 0;
-            height: 100vh;
-            scrollbar-width: none;
-            overflow: hidden;
-            /* position: relative; */
-            width: 100vw;
+            display: grid;
+            justify-content: center;
+            align-items: center;
         }
-
         .img-container img {
-            height: 100%;
-            left: 0;
-            object-fit: fill;
-            object-position: center;
-            opacity: 0;
-            position: absolute;
-            top: 0;
-            /* width: 100%; */
+            grid-column: 1;
+            grid-row: 1;
+            margin: auto;
+            height: 100vh;
             z-index: -1;
+            opacity: 0;
         }
 
         .img-container img.next {
@@ -42,175 +35,19 @@
 
         .img-container img.fade-out {
             opacity: 0;
-            transition: visibility 0s 0.5s, opacity 0.5s linear;
+            /* visibility trasnitions over 0s - 1s*/
+            transition: visibility 0s 1s, opacity 1s linear;
             visibility: hidden;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-
-        class Slideshow {
-
-            constructor() {
-                this.reset()
-            }
-
-            reset() {
-                this.stopSlideshow();
-                this.initSlides();
-                this.initSlideshow();
-            }
-
-            // Set a `data-slide` index on each slide for easier slide control.
-            initSlides() {
-                this.container = $('[data-slideshow]');
-                this.slides = this.container.find('img');
-                this.slides.each((idx, slide) => $(slide).attr('data-slide', idx));
-            }
-
-            // Pseudo-preload images so the slideshow doesn't start before all the images
-            // are available.
-            initSlideshow() {
-                this.imagesLoaded = 0;
-                this.currentIndex = 0;
-                this.setNextSlide();
-                this.slides.each((idx, slide) => {
-                    console.log(screen.width/2, slide.naturalWidth/2)
-                    $('<img>').on('load', $.proxy(this.loadImage, this)).attr('src', $(slide).attr('src'));
-                });
-
-            }
-
-            // When one image has loaded, check to see if all images have loaded, and if
-            // so, start the slideshow.
-            loadImage() {
-                this.imagesLoaded++;
-                if (this.imagesLoaded >= this.slides.length) {
-                    this.playSlideshow()
-                }
-            }
-
-            // Start the slideshow.
-            playSlideshow() {
-                this.stopSlideshow()
-                if (this.slides.length >= 2) {
-                    this.intervalID = window.setInterval(() => {
-                        this.performSlide()
-                    }, 4000);
-                }
-            }
-
-            stopSlideshow() {
-                window.clearInterval(this.intervalID);
-            }
-
-            performSlide() {
-                // Previous slide is unset.
-                if (this.prevSlide) {
-                    this.prevSlide.removeClass('prev fade-out')
-                }
-
-                // What was the next slide becomes the previous slide.
-                this.nextSlide.removeClass('next');
-                this.prevSlide = this.nextSlide;
-                this.prevSlide.addClass('prev');
-
-                // New index and appropriate next slide are set.
-                this.currentIndex++;
-                if (this.currentIndex >= this.slides.length) {
-                    this.currentIndex = 0
-                }
-
-                this.setNextSlide();
-                // Fade out action.
-                this.prevSlide.addClass('fade-out');
-            }
-
-            setNextSlide() {
-                this.nextSlide = this.container.find(`[data-slide="${this.currentIndex}"]`).first();
-                this.nextSlide.addClass('next');
-            }
-
-        }
-
-        function createImage(photo) {
-            let img = $("<img></img>")
-            img.attr('src', "./photos/" + photo);
-            return img
-        }
-
-
-        photos = [];
-        var slideshow = null;
-        let ip = "192.168.1.13"
-
-        $.ajax({
-            url: `https://${ip}:3000/photos`,
-            type: "GET",
-            contentType: "application/json",
-            success: function (result) {
-                console.log(result)
-                for (var i = 0; i < result.photos.length; i++) {
-                    photos.push(result.photos[i])
-                    $("div.img-container").append(createImage(result.photos[i]))
-                }
-                console.log(photos);
-                slideshow = new Slideshow;
-            },
-            error: function (error) {
-                console.log(error)
-            }
-        })
-
-        var updateSocket = new WebSocket(`wss://${ip}:3000/update`)
-        updateSocket.onopen = function (event) {
-            updateSocket.send("Photo Frame Client");
-            console.log("Connected to update websocket");
-        };
-        updateSocket.onmessage = function (event) {
-            let data = JSON.parse(event.data)
-            console.log(data)
-
-            if (data.added != null) {
-                // create img element with new filename
-                let img = createImage(data.added);
-                img.attr('data-slide', slideshow.slides.length);
-                $("div.img-container").append(img);
-
-                // add to the slides array
-                slideshow.slides.push(img)
-                slideshow.playSlideshow()
-            }
-            else if (data.deleted != null) {
-                let imgs = $("img").get();
-                console.log(imgs);
-
-                imgs.forEach(img => {
-                    console.log(img)
-                    if (img.getAttribute('src').includes(data.deleted)) {
-                        const index = img.getAttribute('data-slide');
-                        if (index > -1) {
-                            slideshow.slides.splice(index, 1);
-                            console.log("deleting")
-                            if (slideshow.currentIndex == index) {
-                                slideshow.performSlide()
-                            }
-                            img.remove();
-                                slideshow.reset();
-                        }
-                    }
-                });
-                console.log(slideshow)
-            }
-
-        }
-    </script>
-
+    <script src="/frame/frame.js"></script>
     <title>DPF</title>
 </head>
 
 <body>
     <div class="img-container" data-slideshow>
+        <div></div>
     </div>
 </body>
 

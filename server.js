@@ -35,6 +35,9 @@ app.ws('/update', (ws, req) => {
   })
 })
 
+
+app.use('/frame', express.static('frame'))
+
 exports.wss = wss.getWss('/update');
 
 app.get('/', (req, res) => {

@@ -11,7 +11,4 @@ module.exports = function(app) {
     .get(dpf.get_photo)
     .put(dpf.update_photo)
     .delete(dpf.delete_photo);
-
-    app.route('/frame')
-    .get(dpf.get_photo_frame);
 }

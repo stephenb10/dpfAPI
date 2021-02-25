@@ -91,7 +91,7 @@ function createImage(photo) {
 
 photos = [];
 var slideshow = null;
-let ip = "192.168.1.13"
+let ip = "localhost"
 
 $.ajax({
     url: `https://${ip}:3000/photos`,

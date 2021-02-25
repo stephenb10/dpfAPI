@@ -112,10 +112,10 @@ exports.delete_photo = function(req, res )
 };
 
 
-exports.get_photo_frame = function(req, res ) {
-    res.sendFile("frame.html", {root: './frame'});
-}
+// exports.get_photo_frame = function(req, res ) {
+//     res.sendFile("frame.html", {root: './frame'});
+// }
 
-exports.get_photo_frame_script = function(req, res) {
-    res.sendFile("frame.js", {root: './frame'});
-}
+// exports.get_photo_frame_script = function(req, res) {
+//     res.sendFile("frame.js", {root: './frame'});
+// }

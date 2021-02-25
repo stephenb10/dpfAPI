@@ -1,39 +1,43 @@
-/photos
-GET 
-Response:
-Status 200 ok
+# Digital Photo Frame API
+
+## Get current photos
+
+`GET https://host:3000/photos`
+
+
+Returns `200 OK`
 ```JSON 
 {
-    0: "UUIDfilename.jpg"
-    1: "UUIDfilename.jpg"
-    2: "UUIDfilename.jpg"
-    ...
+    "photos" : ["UUIDfilename1.jpg", "UUIDfilename2.jpg", "UUIDfilename3.jpg"]
+}
+```
+## Add a new photo
+
+`POST https://host:3000/photos`
+
+The request requires the image to be encoded with base64
+```JSON 
+{
+    "photoData" : "base64Data"
 }
 ```
 
-POST
-Request:
+Returns `201 Created`
+and the ID of the photo
 ```JSON 
 {
-    data: base64Data
+    "photoID" : "UUIDfilename.jpg"
 }
 ```
 
-Response:
-Status 201 Created (400 if no body in req)
-```JSON 
-{
-    photoID: "UUIDfilename.jpg"
-}
-```
+## Get a photo
 
-/photos/:photoID
-GET
-Response:
-Status 200 ok
-return image data
+`GET https://host:3000/photos/UUIDfilename1.jpg`
 
+Returns `200 OK` 
 
-DELETE
-Response:
-Status 204 no content
+## Delete a photo
+
+`DELETE https://host:3000/photos/UUIDfilename1.jpg`
+
+Returns `204 No Content`

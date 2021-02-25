@@ -52,7 +52,8 @@ app.use(function(req, res) {
 const udpServer = dgram.createSocket('udp4');
 const networkInterfaces = os.networkInterfaces()
 console.log(networkInterfaces)
-const ip = networkInterfaces['wlan0'][0]['address']
+//const ip = networkInterfaces['wlan0'][0]['address']
+const ip = '0.0.0.0'
 
 udpServer.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
